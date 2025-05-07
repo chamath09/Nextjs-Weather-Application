@@ -1,4 +1,5 @@
 import { ForecastDay } from '@/types/weather';
+import Image from 'next/image'; // Add this import
 
 interface ForecastProps {
   data: ForecastDay[] | null | undefined;
@@ -35,7 +36,7 @@ export default function Forecast({ data }: ForecastProps) {
               {getDayName(day.date)}
             </p>
             <div className="flex justify-center mb-1 sm:mb-2">
-              <img
+              <Image
                 src={`https:${day.day.condition.icon}`}
                 alt={day.day.condition.text}
                 width={40}

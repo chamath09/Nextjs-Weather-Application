@@ -1,5 +1,5 @@
 import { WeatherData } from '@/types/weather';
-import Image from 'next/image';
+import Image from 'next/image'; // Keep this import
 
 interface CurrentWeatherProps {
   data: WeatherData;
@@ -13,7 +13,7 @@ export default function CurrentWeather({ data }: CurrentWeatherProps) {
       <div className="flex flex-col md:flex-row justify-between items-center md:items-center gap-4">
         <div className="flex flex-col sm:flex-row items-center sm:items-start w-full">
           <div className="mb-2 sm:mb-0 sm:mr-6">
-            <img
+            <Image
               src={`https:${current.condition.icon}`}
               alt={current.condition.text}
               width={80}

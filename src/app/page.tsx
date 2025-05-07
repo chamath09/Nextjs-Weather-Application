@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 // We'll use native Date methods instead of date-fns until it's installed
-import SearchBar from '@/components/SearchBar';
+// Remove or comment out the unused import
+// import SearchBar from '@/components/SearchBar';
 import CurrentWeather from '@/components/CurrentWeather';
 import HourlyForecast from '@/components/HourlyForecast';
 import WeatherOverview from '@/components/WeatherOverview';

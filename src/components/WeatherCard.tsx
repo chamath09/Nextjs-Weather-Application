@@ -5,7 +5,9 @@ interface WeatherCardProps {
 }
 
 export default function WeatherCard({ data }: WeatherCardProps) {
-  const { location, current } = data;
+  // Either use the location variable or remove it from destructuring
+  // const { location, current } = data;
+  const { current } = data; // If you're not using location
   
   return (
     <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm">

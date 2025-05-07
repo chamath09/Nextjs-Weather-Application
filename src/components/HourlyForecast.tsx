@@ -1,5 +1,6 @@
 import { HourForecast } from '@/types/weather';
 import { format, parseISO } from 'date-fns';
+import Image from 'next/image'; // Add this import
 
 interface HourlyForecastProps {
   data: HourForecast[];
@@ -27,7 +28,7 @@ export default function HourlyForecast({ data }: HourlyForecastProps) {
             >
               <p className="text-sm text-gray-400">{format(hourTime, 'HH')} {format(hourTime, 'a').toLowerCase()}</p>
               <div className="my-2">
-                <img
+                <Image
                   src={`https:${hour.condition.icon}`}
                   alt={hour.condition.text}
                   width={40}

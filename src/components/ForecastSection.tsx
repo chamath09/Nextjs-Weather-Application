@@ -1,5 +1,6 @@
 import { ForecastDay } from '@/types/weather';
 import { format, parseISO } from 'date-fns';
+import Image from 'next/image'; // Add this import
 
 interface ForecastSectionProps {
   data: ForecastDay[];
@@ -44,12 +45,12 @@ export default function ForecastSection({ data, days, onChangeDays }: ForecastSe
             <div key={index} className="bg-[#2a2a2a] rounded-2xl p-4">
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
-                  <img
+                  <Image
                     src={`https:${day.day.condition.icon}`}
                     alt={day.day.condition.text}
                     width={40}
                     height={40}
-                    className="w-10 h-10 mr-3"
+                    className="w-10 h-10"
                   />
                   <div>
                     <p className="text-lg font-medium">+{Math.round(day.day.maxtemp_c)}°</p>
