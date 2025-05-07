@@ -1,20 +1,30 @@
 import { WeatherData } from '@/types/weather';
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
 
 interface WeatherCardProps {
   data: WeatherData;
 }
 
 export default function WeatherCard({ data }: WeatherCardProps) {
-  // Either use the location variable or remove it from destructuring
-  // const { location, current } = data;
-  const { current } = data; // If you're not using location
+  const { current } = data;
+  const [dateString, setDateString] = useState('');
+  
+  useEffect(() => {
+    // Move date formatting to client-side only
+    setDateString(new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+    }));
+  }, []);
   
   return (
     <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div className="flex items-center">
           <div className="mr-4">
-            <img
+            <Image
               src={`https:${current.condition.icon}`}
               alt={current.condition.text}
               width={80}
@@ -31,11 +41,7 @@ export default function WeatherCard({ data }: WeatherCardProps) {
         <div className="mt-6 md:mt-0 text-right">
           <div className="text-xl font-semibold">Weather</div>
           <div className="text-gray-300">
-            {new Date().toLocaleDateString('en-US', {
-              weekday: 'long',
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
+            {dateString}
           </div>
           <div className="text-blue-300 mt-1">Light thunderstorms and rain</div>
         </div>
