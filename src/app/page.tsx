@@ -1,103 +1,185 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState, useEffect } from 'react';
+// We'll use native Date methods instead of date-fns until it's installed
+import SearchBar from '@/components/SearchBar';
+import CurrentWeather from '@/components/CurrentWeather';
+import HourlyForecast from '@/components/HourlyForecast';
+import WeatherOverview from '@/components/WeatherOverview';
+import ForecastSection from '@/components/ForecastSection';
+import OtherCities from '@/components/OtherCities';
+import SubscribeCard from '@/components/SubscribeCard';
+import VideoBackground from '@/components/VideoBackground';
+import { WeatherData } from '@/types/weather';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [forecastDays, setForecastDays] = useState<number>(3);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [currentTime, setCurrentTime] = useState<string>('');
+  // Change this line to directly use rain.mp4
+  const [backgroundVideo, setBackgroundVideo] = useState<string>('/videos/rain.mp4');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleSearch = async (location: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch(`/api/weather?location=${encodeURIComponent(location)}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch weather data');
+      }
+      
+      const data = await response.json();
+      setWeatherData(data);
+    } catch (err) {
+      setError('Error fetching weather data. Please try again.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      handleSearch(searchQuery);
+    }
+  };
+
+  useEffect(() => {
+    // Default location on first load
+    handleSearch('Berlin');
+    
+    // Set up clock
+    const updateClock = () => {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+      setCurrentTime(timeString);
+    };
+    
+    // Update clock immediately and then every second
+    updateClock();
+    const clockInterval = setInterval(updateClock, 1000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(clockInterval);
+  }, []);
+
+  useEffect(() => {
+    // Update background video based on weather condition
+    if (weatherData?.current?.condition?.text) {
+      const condition = weatherData.current.condition.text.toLowerCase();
+      const isDay = weatherData.current.is_day === 1;
+      
+      if (condition.includes('rain') || condition.includes('drizzle')) {
+        setBackgroundVideo('/videos/rainy.mp4');
+      } else if (condition.includes('snow')) {
+        setBackgroundVideo('/videos/snowy.mp4');
+      } else if (condition.includes('cloud')) {
+        setBackgroundVideo(isDay ? '/videos/cloudy-day.mp4' : '/videos/cloudy-night.mp4');
+      } else if (condition.includes('thunder') || condition.includes('storm')) {
+        setBackgroundVideo('/videos/stormy.mp4');
+      } else {
+        setBackgroundVideo(isDay ? '/videos/clear-day.mp4' : '/videos/clear-night.mp4');
+      }
+    }
+  }, [weatherData]);
+
+  return (
+    <div className="min-h-screen text-white p-4 md:p-6">
+      <VideoBackground videoSrc={backgroundVideo} />
+      
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+          <div className="flex items-center">
+            <div className="mr-3 bg-blue-500 rounded-full p-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">WeatherNow</h1>
+              <div className="flex items-center">
+                <p className="text-lg font-medium text-blue-400">{currentTime}</p>
+                <p className="ml-3 text-gray-400">
+                  {new Date().toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                  })}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center mt-4 md:mt-0 space-x-3">
+            <form onSubmit={handleSearchSubmit} className="relative">
+              <input 
+                type="text" 
+                placeholder="Search city or postcode" 
+                className="bg-[#2a2a2a] rounded-full py-2 px-4 pl-10 text-sm w-64 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 absolute left-3 top-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <button type="submit" className="hidden">Search</button>
+            </form>
+            
+            <div className="flex items-center space-x-2">
+              <button className="bg-[#2a2a2a] rounded-full py-1 px-3 text-sm">ENG</button>
+              <button className="bg-[#2a2a2a] rounded-full py-1 px-3 text-sm">°C</button>
+              <button className="bg-[#2a2a2a] rounded-full py-1 px-3 text-sm">°F</button>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        
+        {loading && (
+          <div className="flex justify-center my-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-400"></div>
+          </div>
+        )}
+        
+        {error && (
+          <div className="bg-red-900/50 border border-red-700 text-red-100 px-4 py-3 rounded-lg my-4" role="alert">
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
+        
+        {weatherData && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column */}
+            <div className="lg:col-span-2 space-y-6">
+              <CurrentWeather data={weatherData} />
+              <HourlyForecast data={weatherData.forecast?.forecastday[0]?.hour || []} />
+              <WeatherOverview data={weatherData} />
+            </div>
+            
+            {/* Right Column */}
+            <div className="space-y-6">
+              <ForecastSection 
+                data={weatherData.forecast?.forecastday || []} 
+                days={forecastDays}
+                onChangeDays={setForecastDays}
+              />
+              <OtherCities />
+              <SubscribeCard />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
