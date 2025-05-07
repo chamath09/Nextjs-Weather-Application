@@ -1,5 +1,5 @@
 import { HourForecast } from '@/types/weather';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import Image from 'next/image'; // Add this import
 
 interface HourlyForecastProps {
